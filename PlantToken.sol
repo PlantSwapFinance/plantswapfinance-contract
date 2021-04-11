@@ -1,47 +1,18 @@
-pragma solidity 0.6.12;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.12;
 
-import "@plantswap/panplant-swap-lib/contracts/token/BEP20/BEP20.sol";
+import './libs/BEP20.sol';
 
-import "./PlantToken.sol";
-
-// SyrupBar with Governance.
-contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
-    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
+// PlantToken with Governance.
+contract PlantToken is BEP20('PlantSwap', 'PLANT') {
+    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterGardener).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
         _moveDelegates(address(0), _delegates[_to], _amount);
     }
 
-    function burn(address _from ,uint256 _amount) public onlyOwner {
-        _burn(_from, _amount);
-        _moveDelegates(_delegates[_from], address(0), _amount);
-    }
-
-    // The PLANT TOKEN!
-    PlantToken public plant;
-
-
-    constructor(
-        PlantToken _plant
-    ) public {
-        plant = _plant;
-    }
-
-    // Safe plant transfer function, just in case if rounding error causes pool to not have enough PLANTs.
-    function safePlantTransfer(address _to, uint256 _amount) public onlyOwner {
-        uint256 plantBal = plant.balanceOf(address(this));
-        if (_amount > plantBal) {
-            plant.transfer(_to, plantBal);
-        } else {
-            plant.transfer(_to, _amount);
-        }
-    }
-
     // Copied and modified from YAM code:
-    // https://github.com/yam-finance/yam-protocol/blob/master/contracts/token/YAMGovernanceStorage.sol
-    // https://github.com/yam-finance/yam-protocol/blob/master/contracts/token/YAMGovernance.sol
-    // Which is copied and modified from COMPOUND:
-    // https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/Comp.sol
+    // https://github.com/goosedefi/goose-contracts
 
     /// @notice A record of each accounts delegate
     mapping (address => address) internal _delegates;
