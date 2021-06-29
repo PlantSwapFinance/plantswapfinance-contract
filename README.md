@@ -7,7 +7,7 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
 ### BSCMAINNET
 
 - PlantToken - https://bscscan.com/token/0x58BA5Bd8872ec18BD360a9592149daed2fC57c69
--(not yet deploy) MasterGardener - https://bscscan.com/address/
+- MasterGardener - https://bscscan.com/address/0x350c56f201f5bcb23f019748123a02e53f8039c4
 
 ### PlantSwap Binance Smart Chain Address
 
