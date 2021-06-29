@@ -18,13 +18,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract VerticalGarden is ERC20, ReentrancyGuard {
     // Place here the token that will be stack
-    BEP20 constant public stakedToken = BEP20(0xb27A31f1b0AF2946B7F582768f03239b1eC07c2c); // Test Address
+    BEP20 constant public stakedToken = BEP20(0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82); // CAKE
     // Place here the token that will be receive as reward
-    BEP20 public rewardToken = BEP20(0xb27A31f1b0AF2946B7F582768f03239b1eC07c2c); // Test Address
+    BEP20 public rewardToken = BEP20(0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82); // CAKE
     // The stacking contract of the first layer of this garden (PancakeSwap MasterChef, token Cake)
-    StakedTokenMasterChef public stakedTokenMasterChef = StakedTokenMasterChef(0xaE036c65C649172b43ef7156b009c6221B596B8b); // Test Address
+    StakedTokenMasterChef public stakedTokenMasterChef = StakedTokenMasterChef(0x73feaa1ee314f8c655e354234017be2193c9e24e); // PancakeSwap MasterChef
     // The stacking contract of the first layer of this garden (PancakeSwap SmartChef, token Cake) (use if stakedTokenMasterChefContractIsSmartChef == true)
-    StakedTokenSmartChef public stakedTokenSmartChef = StakedTokenSmartChef(0xaE036c65C649172b43ef7156b009c6221B596B8b); // Test Address
+    StakedTokenSmartChef public stakedTokenSmartChef = StakedTokenSmartChef(0x73feaa1ee314f8c655e354234017be2193c9e24e); // PancakeSwap MasterChef
     // The pid of the MasterChef pool for the StakedToken
     uint256 public verticalGardenStakedTokenMasterChefPid = 0;
     // The basic amount use to collect reward
@@ -35,9 +35,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     bool public stakedTokenMasterChefContractIsSmartChef = false;
 
     // The reward token of the second layer of the garden (Plantswap, token PLANT)
-    BEP20 constant public plant = BEP20(0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B); // Test Address
+    BEP20 constant public plant = BEP20(0x58BA5Bd8872ec18BD360a9592149daed2fC57c69);
     // The stacking contract of the second layer of this garden (Plantswap MasterGardener, token gStakedToken)
-    MasterGardener public plantMasterGardener = MasterGardener(0x7EF2e0048f5bAeDe046f6BF797943daF4ED8CB47); // Test Address
+    MasterGardener public plantMasterGardener = MasterGardener(0x350c56f201f5bcb23f019748123a02e53f8039c4);
     uint256 public verticalGardenMasterGardenerPid = 1; // The pid of the MasterGardener pool for gStakedToken
 
     struct Gardener {
