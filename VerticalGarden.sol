@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
-/* LastEdit: 14Jul2021 10:54
-**
-** Harvest is still a issue
+/* LastEdit: 14Jul2021 18:43
 **
 ** PlantSwap.finance - VerticalGarden
-** Version:         Beta 1.4
+** Version:         Beta 1.8
 ** Compatibility:   MasterChef(token&LP's) and SmartChef
 **
 ** Staked Token:    Cake
 ** Detail:          Harvest StakedToken&Plant reward as the % of the StakedToken the farmer has vs the total.
-**                  Pending reward calculated using the formula bellow:
-**                  (totalPendingRewardTokenRewardToSplit * ((gardener.balance * (block.number - gardener.dateLastUpdate)) / totalStakedTokenEachBlock))
+**                  Pending reward for each gardener is calculated using the formula bellow:
+**                  (uint256(totalPendingRewardTokenRewardToSplit) * (uint256(gardener.balance) * (uint256(block.number) - uint256(gardener.dateLastUpdate)))) / (uint256(totalStakedTokenEachBlock) + ((uint256(block.number) - uint256(lastRewardUpdateBlock)) * uint256(totalStakedToken))));
 **                  When a new deposit occur, the deposited token get stack in the masterchef, then this contract mint the same amount of token as gStakedToken
-**                  and stake them in the mastergardener contract. Plant reward payout get paid on harvest, compound, deposit and withdraw.
+**                  and stake them in the mastergardener contract at the next trigger update of the contract.
+**                  Plant reward payout get paid on harvest, compound, deposit and withdraw.
+**                  New deposit should trigger automatic compound if you have pending reward
+**                  Withdraw should trigger harvest of pending reward
+**                  EmergencyWithdraw will forfeit to other farmer your pending reward
 */
 pragma solidity 0.8.0;
 
@@ -73,6 +75,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     uint256 public totalPendingRewardTokenRewardToSplit;
     uint256 public totalPendingPlantRewardToSplit;
     uint256 public totalStakedTokenEachBlock;
+    uint256 public toStakeGStakedToken;
     uint256 public lastRewardUpdateBlock; // Block of the last update
     uint256 public lastRewardUpdateBlockPrevious; // Block number at previous update
     uint256 public lastRewardUpdateTotalStakedToken; // totalStakedToken at previous update
@@ -82,6 +85,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
 
     event Deposit(address indexed gardener, uint256 amount);
     event Withdraw(address indexed gardener, uint256 amount);
+    event CompoundRewardToken(address indexed gardener, uint256 amount);
+    event HarvestPlantReward(address indexed gardener, uint256 amount);
+    event HarvestRewardToken(address indexed gardener, uint256 amount);
 
     constructor(
     ) ERC20('gCAKE Plantswap.finance Vertical Garden', 'gCAKE') {
@@ -105,14 +111,14 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
             uint256 plantBalanceAtStart = plant.balanceOf(address(this));
             if(lastRewardUpdateBlock < block.number) {
                 if(stakedTokenMasterChefContractIsSmartChef) {
-                    stakedTokenSmartChef.withdraw(0);
+                    stakedTokenSmartChef.deposit(0);
                 } else
                 {
                     if(verticalGardenStakedTokenMasterChefPid > 0) {
-                        stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, 0);
+                        stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, 0);
                     }
                     else {
-                        stakedTokenMasterChef.leaveStaking(0);
+                        stakedTokenMasterChef.enterStaking(0);
                     }
                 }
                 uint256 rewardTokenGained = rewardToken.balanceOf(address(this)) - rewardTokenBalanceAtStart;
@@ -135,6 +141,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                 lastRewardUpdateRewardTokenGained = uint256(rewardTokenGained);
                 totalStakedTokenEachBlock += uint256(totalStakedToken) * (uint256(block.number) - uint256(lastRewardUpdateBlock));
                 lastRewardUpdateTotalStakedToken = uint256(totalStakedToken);
+                uint256 gStakedTokenToMintAndStake = 0;
                 if(!rewardTokenDifferentFromStakedToken) {
                     if(stakedTokenMasterChefContractIsSmartChef) {
                             stakedTokenSmartChef.deposit(rewardTokenGained);
@@ -147,9 +154,15 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                             stakedTokenMasterChef.enterStaking(rewardTokenGained); // Stake StakedToken harvested in PancakeSwap Pool
                         }
                     }
-                    _mint(address(this), rewardTokenGained); // Mint gStakedToken harvested
+                    gStakedTokenToMintAndStake += rewardTokenGained;
                 }
-                plantMasterGardener.deposit(verticalGardenMasterGardenerPid, rewardTokenGained); // Stake gStakedToken harvested in MasterGardener
+                if(toStakeGStakedToken > 0) {
+                    gStakedTokenToMintAndStake += toStakeGStakedToken;
+                }
+                if(gStakedTokenToMintAndStake > 0) {
+                    _mint(address(this), gStakedTokenToMintAndStake); // Mint gStakedToken harvested and previously deposited
+                    plantMasterGardener.deposit(verticalGardenMasterGardenerPid, gStakedTokenToMintAndStake); // Stake gStakedToken harvested in MasterGardener
+                }
                 uint256 plantGained = plant.balanceOf(address(this)) - plantBalanceAtStart;
                 if(plantGained > 0) {
                     totalPendingPlantRewardToSplit += uint256(plantGained);
@@ -162,64 +175,77 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     }
 
     function pendingRewardToken(address _farmer) public view returns (uint256) {
-        Gardener memory gardener = gardeners[_farmer];
         uint256 lTotalPendingRewardTokenRewardToSplit = totalPendingRewardTokenRewardToSplit;
-        uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
+        uint256 lTotalWeight = totalWeight();
+        uint256 lGardenerWeight = gardenerWeight(_farmer);
         uint256 lExpectedRewardToken = 0;
-        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
-        if(lTotalPendingRewardTokenRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedRewardToken = uint256(lTotalPendingRewardTokenRewardToSplit) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
+        if(lTotalPendingRewardTokenRewardToSplit > 0 && lGardenerWeight > 0 && lTotalWeight > 0) {
+            lExpectedRewardToken = ((uint256(lTotalPendingRewardTokenRewardToSplit) * uint256(lGardenerWeight)) / uint256(lTotalWeight));
         }
         return lExpectedRewardToken;
     }
 
     function pendingPlantReward(address _farmer) public view returns (uint256) {
-        Gardener memory gardener = gardeners[_farmer];
         uint256 lTotalPendingPlantRewardToSplit = totalPendingPlantRewardToSplit;
-        uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
+        uint256 lTotalWeight = totalWeight();
+        uint256 lGardenerWeight = gardenerWeight(_farmer);
         uint256 lExpectedPlantReward = 0;
-        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
-        if(lTotalPendingPlantRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedPlantReward = uint256(lTotalPendingPlantRewardToSplit) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
+        if(lTotalPendingPlantRewardToSplit > 0 && lGardenerWeight > 0 && lTotalWeight > 0) {
+            lExpectedPlantReward = ((uint256(lTotalPendingPlantRewardToSplit) * uint256(lGardenerWeight)) / uint256(lTotalWeight));
         }
         return lExpectedPlantReward;
     }
 
     function estimateRewardToken(address _farmer) public view returns (uint256) {
-        Gardener memory gardener = gardeners[_farmer];
         uint256 lTotalPendingRewardTokenRewardToSplit = totalPendingRewardTokenRewardToSplit;
+        uint256 lTotalWeight = totalWeight();
+        uint256 lGardenerWeight = gardenerWeight(_farmer);
         uint256 lTotalPendingInMasterChef = pendingStakedTokenInStakedTokenMasterChef();
-        uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
         uint256 lExpectedRewardToken = 0;
-        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
-        if(lTotalPendingRewardTokenRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedRewardToken = (uint256(lTotalPendingRewardTokenRewardToSplit) + uint256(lTotalPendingInMasterChef)) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
+        if(lTotalPendingRewardTokenRewardToSplit > 0 && lGardenerWeight > 0 && lTotalWeight > 0) {
+            lExpectedRewardToken = (((uint256(lTotalPendingRewardTokenRewardToSplit) + uint256(lTotalPendingInMasterChef)) * uint256(lGardenerWeight)) / uint256(lTotalWeight));
         }
         return lExpectedRewardToken;
     }
 
     function estimatePlantReward(address _farmer) public view returns (uint256) {
-        Gardener memory gardener = gardeners[_farmer];
         uint256 lTotalPendingPlantRewardToSplit = totalPendingPlantRewardToSplit;
+        uint256 lTotalWeight = totalWeight();
+        uint256 lGardenerWeight = gardenerWeight(_farmer);
         uint256 lTotalPendingInMasterGardener = pendingPlantInPlantMasterGardener();
-        uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
         uint256 lExpectedPlantReward = 0;
-        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
-        if(lTotalPendingPlantRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedPlantReward = (uint256(lTotalPendingPlantRewardToSplit) + uint256(lTotalPendingInMasterGardener)) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
+        if(lTotalPendingPlantRewardToSplit > 0 && lGardenerWeight > 0 && lTotalWeight > 0) {
+            lExpectedPlantReward = (((uint256(lTotalPendingPlantRewardToSplit) + uint256(lTotalPendingInMasterGardener)) * uint256(lGardenerWeight)) / uint256(lTotalWeight));
+        
         }
         return lExpectedPlantReward;
+    }
+
+    function totalWeight() public view returns (uint256) {
+        uint256 lTotalStakedToken = totalStakedToken;
+        uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
+        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
+        uint256 lTotalWeight = 0;
+        if(lLastRewardUpdateBlock > 0 && lTotalStakedToken > 0) {
+            lTotalWeight = uint256(lTotalStakedTokenEachBlock) + ((uint256(block.number) - uint256(lLastRewardUpdateBlock)) * uint256(lTotalStakedToken));
+        }
+        return lTotalWeight;
     }
 
     function gardenerWeight(address _farmer) public view returns (uint256) {
         Gardener memory gardener = gardeners[_farmer];
         uint256 lGardenerWeight = 0;
-        if(gardener.balance > 0 && lastRewardUpdateBlockPrevious > gardener.dateLastUpdate) {
-            lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlockPrevious) - uint256(gardener.dateLastUpdate));
+        if(gardener.balance > 0 && totalStakedToken > 0) {
+            lGardenerWeight = ((uint256(block.number) - uint256(gardener.dateLastUpdate)) * uint256(gardener.balance));
+        }
+        return lGardenerWeight;
+    }
+
+    function gardenerWeightV1(address _farmer) public view returns (uint256) {
+        Gardener memory gardener = gardeners[_farmer];
+        uint256 lGardenerWeight = 0;
+        if(gardener.balance > 0 && totalStakedToken > 0) {
+            lGardenerWeight = uint256(gardener.balance) * (uint256(block.number) - uint256(gardener.dateLastUpdate));
         }
         return lGardenerWeight;
     }
@@ -233,15 +259,15 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         require(!rewardTokenDifferentFromStakedToken, "compoundReward() is only possible if stakedToken == rewardToken");                            
         if(!rewardTokenDifferentFromStakedToken) {
             Gardener memory gardener = gardeners[farmer];
-            if(gardener.dateLastUpdate < lastRewardUpdateBlockPrevious) {
+            if(gardener.dateLastUpdate < lastRewardUpdateBlock) {
                 if(totalPendingRewardTokenRewardToSplit > 0 && gardener.balance > 0 && gardener.dateLastUpdate > 0) {
                     uint256 expectedRewardToken = pendingRewardToken(farmer);
                     uint256 expectedPlant = pendingPlantReward(farmer);
-                    uint256 lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlockPrevious) - uint256(gardener.dateLastUpdate));
+                    uint256 lGardenerWeight = gardenerWeight(farmer);
                     if(expectedRewardToken > 0 && expectedRewardToken <= totalPendingRewardTokenRewardToSplit) {
-                        gardener.balance += uint256(expectedRewardToken);
-                        totalPendingRewardTokenRewardToSplit -= uint256(expectedRewardToken);
                         require(totalStakedTokenEachBlock >= lGardenerWeight, "Error: totalStakedTokenEachBlock >= lGardenerWeight");
+                        totalPendingRewardTokenRewardToSplit -= uint256(expectedRewardToken);
+                        gardener.balance += uint256(expectedRewardToken);
                         totalStakedTokenEachBlock -= uint256(lGardenerWeight);
                         gardener.dateLastUpdate = uint256(lastRewardUpdateBlock);
                         totalStakedToken += uint256(expectedRewardToken);
@@ -254,9 +280,11 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                                 uint256 plantBalanceBeforePayout = plant.balanceOf(address(this));
                                 require(plantBalanceBeforePayout >= expectedPlant, "Error with Plant transfer to farmer: Balance < expectedPlant");
                                 require(plant.transferFrom(address(this), farmer, expectedPlant), "Error with Plant transfer to farmer");
+                                emit HarvestPlantReward(msg.sender, expectedPlant);
                             }
                         }
                         gardeners[farmer] = gardener;
+                        emit CompoundRewardToken(msg.sender, expectedRewardToken);
                     }
                 }
             }
@@ -270,32 +298,37 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     function harvestReward() internal {
         address farmer = msg.sender;
         Gardener memory gardener = gardeners[farmer];
-        if(gardener.dateLastUpdate < lastRewardUpdateBlockPrevious) {
+        if(gardener.dateLastUpdate < lastRewardUpdateBlock) {
             if(totalPendingRewardTokenRewardToSplit > 0 && gardener.balance > 0) {
                 uint256 expectedRewardToken = pendingRewardToken(farmer);
                 uint256 expectedPlant = pendingPlantReward(farmer);
-                uint256 lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlockPrevious) - uint256(gardener.dateLastUpdate));
+                uint256 lGardenerWeight = gardenerWeight(farmer);
                 uint256 gardenerRewardTokenAllowance = rewardToken.allowance(address(farmer), address(this));
                 require(gardenerRewardTokenAllowance >= expectedRewardToken, "Error with StakedToken allowance: allowance < expectedStakedToken");
                 if(expectedRewardToken > 0 && expectedRewardToken <= totalPendingRewardTokenRewardToSplit) {
-                    harvestedReward[farmer] += uint256(expectedRewardToken);
-                    totalPendingRewardTokenRewardToSplit -= uint256(expectedRewardToken);
                     require(totalStakedTokenEachBlock >= lGardenerWeight, "Error: totalStakedTokenEachBlock >= lGardenerWeight");
+                    totalPendingRewardTokenRewardToSplit -= uint256(expectedRewardToken);
                     totalStakedTokenEachBlock -= uint256(lGardenerWeight);
+                    harvestedReward[farmer] += uint256(expectedRewardToken);
                     gardener.dateLastUpdate = uint256(lastRewardUpdateBlock);
+                    uint256 lUserInfoInStakedTokenMasterChef = qtyStakedTokenMasterChef();
+                    uint256 lEexpectedRewardTokenToUnStack = expectedRewardToken;
+                    if(expectedRewardToken > lUserInfoInStakedTokenMasterChef) {
+                        lEexpectedRewardTokenToUnStack = lUserInfoInStakedTokenMasterChef;
+                    }
                     if(stakedTokenMasterChefContractIsSmartChef) {
-                        stakedTokenSmartChef.withdraw(expectedRewardToken);
+                        stakedTokenSmartChef.withdraw(lEexpectedRewardTokenToUnStack);
                     } else
                     {
                         if(verticalGardenStakedTokenMasterChefPid > 0) {
-                            stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, expectedRewardToken);
+                            stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, lEexpectedRewardTokenToUnStack);
                         }
                         else {
-                            stakedTokenMasterChef.leaveStaking(expectedRewardToken);
+                            stakedTokenMasterChef.leaveStaking(lEexpectedRewardTokenToUnStack);
                         }
                     }
-                    plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, expectedRewardToken);
-                    _burn(address(this), expectedRewardToken);
+                    plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, lEexpectedRewardTokenToUnStack);
+                    _burn(address(this), lEexpectedRewardTokenToUnStack);
                     if(totalPendingPlantRewardToSplit > 0) {
                         uint256 gardenerPlantAllowance = plant.allowance(address(farmer), address(this));
                         require(gardenerPlantAllowance >= expectedPlant, "Error with Plant allowance: allowance < expectedPlant");
@@ -305,10 +338,12 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                             uint256 plantBalanceBeforePayout = plant.balanceOf(address(this));
                             require(plantBalanceBeforePayout >= expectedPlant, "Error with Plant transfer to farmer: Balance < expectedPlant");
                             require(plant.transferFrom(address(this), address(farmer), expectedPlant), "Error with Plant transfer to farmer");
+                            emit HarvestPlantReward(msg.sender, expectedPlant);
                         }
                     }
                     gardeners[farmer] = gardener;
                     require(rewardToken.transferFrom(address(this), address(farmer), expectedRewardToken), "Error with StakedToken transfer to farmer");
+                    emit HarvestRewardToken(msg.sender, expectedRewardToken);
                 }
             }
         }
@@ -364,13 +399,20 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                 stakedTokenMasterChef.enterStaking(depositAmount); // Stake your StakedToken in PancakeSwap Pool
             }
         }
-        _mint(address(this), depositAmount); // Mint gStakedToken
-        plantMasterGardener.deposit(verticalGardenMasterGardenerPid, depositAmount); // Stake gStakedToken in MasterGardener
         Gardener memory gardener = gardeners[farmer];
         gardener.balance += uint256(depositAmount);
-        gardener.dateLastUpdate = uint256(block.number);
+        if(gardener.dateLastUpdate < 1) {
+            gardener.dateLastUpdate = block.number;
+        }
         gardeners[farmer] = gardener;
-        if(lastRewardUpdateBlock == 0) { lastRewardUpdateBlock = uint256(block.number); }
+        if(lastRewardUpdateBlock < 1) { // Initialize lastRewardUpdateBlock on first deposit and stack in master gardener
+            _mint(address(this), depositAmount); // Mint gStakedToken
+            plantMasterGardener.deposit(verticalGardenMasterGardenerPid, depositAmount); // Stake gStakedToken in MasterGardener
+            lastRewardUpdateBlock = uint256(block.number);
+        }
+        else {
+            toStakeGStakedToken += uint256(depositAmount);
+        }
         totalStakedToken += uint256(depositAmount);
         emit Deposit(msg.sender, depositAmount);
     }
@@ -391,6 +433,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         Gardener memory gardener = gardeners[farmer];
         if(withdrawAmount <= gardener.balance) {
             gardener.balance -= uint256(withdrawAmount);
+            gardener.dateLastUpdate = uint256(block.number);
             gardeners[farmer] = gardener;
             totalStakedToken -= uint256(withdrawAmount);
             uint256 gardenerRewardTokenAllowance = stakedToken.allowance(address(farmer), address(this));
@@ -419,8 +462,8 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         uint256 withdrawAmount = amount;
         Gardener memory gardener = gardeners[farmer];
         if(withdrawAmount <= gardener.balance) {
-            gardener.dateLastUpdate = uint256(block.number);
             gardener.balance -= uint256(withdrawAmount);
+            gardener.dateLastUpdate = uint256(block.number);
             gardeners[farmer] = gardener;
             totalStakedToken -= uint256(withdrawAmount);
             uint256 gardenerRewardTokenAllowance = stakedToken.allowance(address(farmer), address(this));
@@ -458,6 +501,20 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         return plantMasterGardener.pendingPlant(verticalGardenMasterGardenerPid, address(this));
     }
     
+    function qtyStakedTokenMasterChef() public view returns (uint256) {
+        struct UserInfo {
+            uint256 amount;
+            uint256 rewardDebt;
+        }
+        if(stakedTokenMasterChefContractIsSmartChef) {
+            UserInfo memory userInfo = stakedTokenSmartChef.userInfo(address(this));
+        } else
+        {
+            UserInfo memory userInfo = stakedTokenMasterChef.userInfo(verticalGardenStakedTokenMasterChefPid, address(this));
+        }
+        return userInfo.amount;
+    }
+
     // How much StakedToken is stack and how much is the reward debt (Call PancakeSwap MasterChef Contract)
     function userInfoInStakedTokenMasterChef() public view returns (uint256, uint256) {
         if(stakedTokenMasterChefContractIsSmartChef) {
