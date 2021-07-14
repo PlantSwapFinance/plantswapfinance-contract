@@ -29,8 +29,9 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
         https://bscscan.com/address/0xb57f4678fc7b6dC1b0ef174994f7E47E2Ee04B4C
 
 ### VerticalGarden (Beta)
-- Vertical Garden Beta 0.1 Cake 0x283C9a6E48FdEAf4f5d875D4b54BEe8491c30672 (broken)
-- Vertical Garden Beta 0.2 Cake 0xD42c7619f1eb403eDbe13Fc3D8F7a95deC9C49B3
+- Vertical Garden Beta 0.3 Cake/Cake/Plant 0x9E1fAe27478205e4D46F0ed61525749f74DD5671 (in-test)
+- Vertical Garden Beta 0.2 Cake/Cake/Plant 0xD42c7619f1eb403eDbe13Fc3D8F7a95deC9C49B3 (fragile)
+- Vertical Garden Beta 0.1 Cake/Cake/Plant 0x283C9a6E48FdEAf4f5d875D4b54BEe8491c30672 (broken)
 
 ## Other usefull address
 - Cake 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82
