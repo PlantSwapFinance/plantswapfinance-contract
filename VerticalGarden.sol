@@ -311,24 +311,19 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                     totalStakedTokenEachBlock -= uint256(lGardenerWeight);
                     harvestedReward[farmer] += uint256(expectedRewardToken);
                     gardener.dateLastUpdate = uint256(lastRewardUpdateBlock);
-                    uint256 lUserInfoInStakedTokenMasterChef = qtyStakedTokenMasterChef();
-                    uint256 lEexpectedRewardTokenToUnStack = expectedRewardToken;
-                    if(expectedRewardToken > lUserInfoInStakedTokenMasterChef) {
-                        lEexpectedRewardTokenToUnStack = lUserInfoInStakedTokenMasterChef;
-                    }
                     if(stakedTokenMasterChefContractIsSmartChef) {
-                        stakedTokenSmartChef.withdraw(lEexpectedRewardTokenToUnStack);
+                        stakedTokenSmartChef.withdraw(expectedRewardToken);
                     } else
                     {
                         if(verticalGardenStakedTokenMasterChefPid > 0) {
-                            stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, lEexpectedRewardTokenToUnStack);
+                            stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, expectedRewardToken);
                         }
                         else {
-                            stakedTokenMasterChef.leaveStaking(lEexpectedRewardTokenToUnStack);
+                            stakedTokenMasterChef.leaveStaking(expectedRewardToken);
                         }
                     }
-                    plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, lEexpectedRewardTokenToUnStack);
-                    _burn(address(this), lEexpectedRewardTokenToUnStack);
+                    plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, expectedRewardToken);
+                    _burn(address(this), expectedRewardToken);
                     if(totalPendingPlantRewardToSplit > 0) {
                         uint256 gardenerPlantAllowance = plant.allowance(address(farmer), address(this));
                         require(gardenerPlantAllowance >= expectedPlant, "Error with Plant allowance: allowance < expectedPlant");
@@ -499,20 +494,6 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     // How much pending Plant in gStakedToken Pool (not including what is stack) (Call Plantswap MasterGardener Contract)
     function pendingPlantInPlantMasterGardener() public view returns (uint256) {
         return plantMasterGardener.pendingPlant(verticalGardenMasterGardenerPid, address(this));
-    }
-    
-    function qtyStakedTokenMasterChef() public view returns (uint256) {
-        struct UserInfo {
-            uint256 amount;
-            uint256 rewardDebt;
-        }
-        if(stakedTokenMasterChefContractIsSmartChef) {
-            UserInfo memory userInfo = stakedTokenSmartChef.userInfo(address(this));
-        } else
-        {
-            UserInfo memory userInfo = stakedTokenMasterChef.userInfo(verticalGardenStakedTokenMasterChefPid, address(this));
-        }
-        return userInfo.amount;
     }
 
     // How much StakedToken is stack and how much is the reward debt (Call PancakeSwap MasterChef Contract)
