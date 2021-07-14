@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-/* LastEdit: 13Jul2021 20:39
+/* LastEdit: 14Jul2021 10:54
 **
 ** Harvest is still a issue
 **
 ** PlantSwap.finance - VerticalGarden
-** Version:         Beta 1.2
+** Version:         Beta 1.4
 ** Compatibility:   MasterChef(token&LP's) and SmartChef
 **
 ** Staked Token:    Cake
@@ -20,6 +20,35 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract VerticalGarden is ERC20, ReentrancyGuard {
+    
+    bool public depositActive; // if true, deposit are active
+    bool public freezeContract; // Security Freeze this contract if true
+    // If true it mean the reward from MasterChef is not the same token than the Staked Token
+    bool public rewardTokenDifferentFromStakedToken = false;
+    // If true it mean the Staking Contract is a SmartChef and not a MasterChef (no pid)
+    bool public stakedTokenMasterChefContractIsSmartChef = false;
+    // The pid of the MasterChef pool for the StakedToken
+    uint16 public verticalGardenStakedTokenMasterChefPid = 0;
+    uint16 public verticalGardenMasterGardenerPid = 1; // The pid of the MasterGardener pool for gStakedToken
+
+    // Deposit Fee 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2000 = 20%
+    uint16 depositFee = 100; // 1%
+    // Reward Cut 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2500 = 25%
+    uint16 rewardCut = 1500; // 15%
+    // Reward Cut Split Development Fund 1/100 || 1 = 1%, 100 = 100%, min: 0, max: 100 = 100% (If both value are 0, this will get 100%)
+    uint16 rewardCutSplitDevelopmentFund = 50; // 50%
+    // Reward Cut Split Buy Plant And Burn 1/100 || 1 = 1%, 100 = 100%, min: 0, max: 100 = 100%
+    uint16 rewardCutSplitBuyPlantAndBurn = 50; // 50%
+    
+    // Development Fund Address.
+    address public developmentFundAdddress = 0xcab64A8d400FD7d9F563292E6135285FD9E54980;
+    // Buy Plant And Burn Address.
+    address public buyPlantAndBurnAdddress = 0xE5EA440fF25472B09BA31371BF154ed05f1d0182;
+    // Deposit Fee address
+    address public depositFeeAddress = 0xcab64A8d400FD7d9F563292E6135285FD9E54980;
+    // Dev address for maintenance
+    address public devAddress;
+
     // Place here the token that will be stack
     BEP20 constant public stakedToken = BEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82); // CAKE
     // Place here the token that will be receive as reward
@@ -28,19 +57,11 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     StakedTokenMasterChef public stakedTokenMasterChef = StakedTokenMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E); // PancakeSwap MasterChef
     // The stacking contract of the first layer of this garden (PancakeSwap SmartChef, token Cake) (use if stakedTokenMasterChefContractIsSmartChef == true)
     StakedTokenSmartChef public stakedTokenSmartChef = StakedTokenSmartChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E); // PancakeSwap MasterChef
-    // The pid of the MasterChef pool for the StakedToken
-    uint16 public verticalGardenStakedTokenMasterChefPid = 0;
-    // If true it mean the reward from MasterChef is not the same token than the Staked Token
-    bool public rewardTokenDifferentFromStakedToken = false;
-    // If true it mean the Staking Contract is a SmartChef and not a MasterChef (no pid)
-    bool public stakedTokenMasterChefContractIsSmartChef = false;
-
     // The reward token of the second layer of the garden (Plantswap, token PLANT)
     BEP20 constant public plant = BEP20(0x58BA5Bd8872ec18BD360a9592149daed2fC57c69);
     // The stacking contract of the second layer of this garden (Plantswap MasterGardener, token gStakedToken)
     MasterGardener public plantMasterGardener = MasterGardener(0x350c56f201f5BcB23F019748123a02e53F8039C4);
-    uint16 public verticalGardenMasterGardenerPid = 1; // The pid of the MasterGardener pool for gStakedToken
-
+    
     struct Gardener {
         uint256 balance;
         uint256 dateLastUpdate;
@@ -57,26 +78,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     uint256 public lastRewardUpdateTotalStakedToken; // totalStakedToken at previous update
     uint256 public lastRewardUpdateRewardTokenGained; // rewardTokenGained at previous update
     uint256 public lastRewardUpdatePlantGained; // plantGained at previous update
-    bool public depositActive; // if true, deposit are active
-    bool public freezeContract; // Security Freeze this contract if true
     uint256 public freezeContractTillBlock;
-
-    // Deposit Fee 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2000 = 20%
-    uint16 depositFee = 100; // 1%
-    // Reward Cut 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2500 = 25%
-    uint16 rewardCut = 1500; // 15%
-    // Reward Cut Split Development Fund 1/100 || 1 = 1%, 100 = 100%, min: 0, max: 100 = 100% (If both value are 0, this will get 100%)
-    uint16 rewardCutSplitDevelopmentFund = 50; // 50%
-    // Reward Cut Split Buy Plant And Burn 1/100 || 1 = 1%, 100 = 100%, min: 0, max: 100 = 100%
-    uint16 rewardCutSplitBuyPlantAndBurn = 50; // 50%
-    // Development Fund Address.
-    address public developmentFundAdddress = 0xcab64A8d400FD7d9F563292E6135285FD9E54980;
-    // Buy Plant And Burn Address.
-    address public buyPlantAndBurnAdddress = 0xE5EA440fF25472B09BA31371BF154ed05f1d0182;
-    // Deposit Fee address
-    address public depositFeeAddress = 0xcab64A8d400FD7d9F563292E6135285FD9E54980;
-    // Dev address for maintenance
-    address public devAddress;
 
     event Deposit(address indexed gardener, uint256 amount);
     event Withdraw(address indexed gardener, uint256 amount);
@@ -93,7 +95,6 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
             _;
         }
     }
-
     
     function updateGarden() external nonReentrant gardenActive {
         updateReward();
@@ -131,9 +132,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                     }
                 }
                 totalPendingRewardTokenRewardToSplit += uint256(rewardTokenGained);
+                lastRewardUpdateRewardTokenGained = uint256(rewardTokenGained);
                 totalStakedTokenEachBlock += uint256(totalStakedToken) * (uint256(block.number) - uint256(lastRewardUpdateBlock));
                 lastRewardUpdateTotalStakedToken = uint256(totalStakedToken);
-                lastRewardUpdateRewardTokenGained = uint256(rewardTokenGained);
                 if(!rewardTokenDifferentFromStakedToken) {
                     if(stakedTokenMasterChefContractIsSmartChef) {
                             stakedTokenSmartChef.deposit(rewardTokenGained);
@@ -166,9 +167,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
         uint256 lExpectedRewardToken = 0;
         uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (lLastRewardUpdateBlock - gardener.dateLastUpdate);
+        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
         if(lTotalPendingRewardTokenRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedRewardToken = lTotalPendingRewardTokenRewardToSplit * ((gardener.balance * lBlockCount) / lTotalStakedTokenEachBlock);
+            lExpectedRewardToken = uint256(lTotalPendingRewardTokenRewardToSplit) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
         }
         return lExpectedRewardToken;
     }
@@ -179,9 +180,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
         uint256 lExpectedPlantReward = 0;
         uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (lLastRewardUpdateBlock - gardener.dateLastUpdate);
+        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
         if(lTotalPendingPlantRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedPlantReward = lTotalPendingPlantRewardToSplit * ((gardener.balance * lBlockCount) / lTotalStakedTokenEachBlock);
+            lExpectedPlantReward = uint256(lTotalPendingPlantRewardToSplit) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
         }
         return lExpectedPlantReward;
     }
@@ -193,9 +194,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
         uint256 lExpectedRewardToken = 0;
         uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (lLastRewardUpdateBlock - gardener.dateLastUpdate);
+        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
         if(lTotalPendingRewardTokenRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedRewardToken = (lTotalPendingRewardTokenRewardToSplit + lTotalPendingInMasterChef) * ((gardener.balance * lBlockCount) / lTotalStakedTokenEachBlock);
+            lExpectedRewardToken = (uint256(lTotalPendingRewardTokenRewardToSplit) + uint256(lTotalPendingInMasterChef)) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
         }
         return lExpectedRewardToken;
     }
@@ -207,9 +208,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         uint256 lTotalStakedTokenEachBlock = totalStakedTokenEachBlock;
         uint256 lExpectedPlantReward = 0;
         uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lBlockCount = (lLastRewardUpdateBlock - gardener.dateLastUpdate);
+        uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
         if(lTotalPendingPlantRewardToSplit > 0 && lTotalStakedTokenEachBlock > 0 && gardener.balance > 0 && lBlockCount > 0) {
-            lExpectedPlantReward = (lTotalPendingPlantRewardToSplit + lTotalPendingInMasterGardener) * ((gardener.balance * lBlockCount) / lTotalStakedTokenEachBlock);
+            lExpectedPlantReward = (uint256(lTotalPendingPlantRewardToSplit) + uint256(lTotalPendingInMasterGardener)) * ((uint256(gardener.balance) * uint256(lBlockCount)) / uint256(lTotalStakedTokenEachBlock));
         }
         return lExpectedPlantReward;
     }
@@ -217,8 +218,8 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     function gardenerWeight(address _farmer) public view returns (uint256) {
         Gardener memory gardener = gardeners[_farmer];
         uint256 lGardenerWeight = 0;
-        if(gardener.balance > 0 && lastRewardUpdateBlock > gardener.dateLastUpdate) {
-            lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
+        if(gardener.balance > 0 && lastRewardUpdateBlockPrevious > gardener.dateLastUpdate) {
+            lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlockPrevious) - uint256(gardener.dateLastUpdate));
         }
         return lGardenerWeight;
     }
@@ -233,10 +234,10 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         if(!rewardTokenDifferentFromStakedToken) {
             Gardener memory gardener = gardeners[farmer];
             if(gardener.dateLastUpdate < lastRewardUpdateBlockPrevious) {
-                if(totalPendingRewardTokenRewardToSplit > 0 && gardener.balance > 0) {
+                if(totalPendingRewardTokenRewardToSplit > 0 && gardener.balance > 0 && gardener.dateLastUpdate > 0) {
                     uint256 expectedRewardToken = pendingRewardToken(farmer);
                     uint256 expectedPlant = pendingPlantReward(farmer);
-                    uint256 lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
+                    uint256 lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlockPrevious) - uint256(gardener.dateLastUpdate));
                     if(expectedRewardToken > 0 && expectedRewardToken <= totalPendingRewardTokenRewardToSplit) {
                         gardener.balance += uint256(expectedRewardToken);
                         totalPendingRewardTokenRewardToSplit -= uint256(expectedRewardToken);
@@ -273,7 +274,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
             if(totalPendingRewardTokenRewardToSplit > 0 && gardener.balance > 0) {
                 uint256 expectedRewardToken = pendingRewardToken(farmer);
                 uint256 expectedPlant = pendingPlantReward(farmer);
-                uint256 lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlock) - uint256(gardener.dateLastUpdate));
+                uint256 lGardenerWeight = uint256(gardener.balance) * (uint256(lastRewardUpdateBlockPrevious) - uint256(gardener.dateLastUpdate));
                 uint256 gardenerRewardTokenAllowance = rewardToken.allowance(address(farmer), address(this));
                 require(gardenerRewardTokenAllowance >= expectedRewardToken, "Error with StakedToken allowance: allowance < expectedStakedToken");
                 if(expectedRewardToken > 0 && expectedRewardToken <= totalPendingRewardTokenRewardToSplit) {
@@ -326,12 +327,18 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         require(amount > 0, "Deposit amount < 0");
         if(totalStakedToken > 0) {
             updateReward();
-            if(!rewardTokenDifferentFromStakedToken) {
-                compoundReward();
-            } else {
-               harvestReward();
+            if(totalPendingRewardTokenRewardToSplit > 0 || totalPendingPlantRewardToSplit > 0) {
+                if(!rewardTokenDifferentFromStakedToken) {
+                    compoundReward();
+                } else {
+                    harvestReward();
+                }
             }
         }
+        depositToken(amount);
+    }
+    
+    function depositToken(uint256 amount) internal {
         address farmer = msg.sender;
         require(farmer == tx.origin);
         uint256 depositAmount = 0;
@@ -361,20 +368,26 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
         plantMasterGardener.deposit(verticalGardenMasterGardenerPid, depositAmount); // Stake gStakedToken in MasterGardener
         Gardener memory gardener = gardeners[farmer];
         gardener.balance += uint256(depositAmount);
-        if(gardener.dateLastUpdate == 0) {
-            gardener.dateLastUpdate = block.number; }
+        gardener.dateLastUpdate = uint256(block.number);
         gardeners[farmer] = gardener;
         if(lastRewardUpdateBlock == 0) { lastRewardUpdateBlock = uint256(block.number); }
         totalStakedToken += uint256(depositAmount);
         emit Deposit(msg.sender, depositAmount);
     }
 
-    // Withdraw
-    function withdraw(uint256 amount) public nonReentrant gardenActive {
-        address farmer = msg.sender;
-        uint256 withdrawAmount = amount;
+    function withdraw(uint256 amount) external nonReentrant gardenActive {
+        require(amount > 0, "Withdraw amount < 0");
         updateReward();
-        harvestReward();
+        if(totalPendingRewardTokenRewardToSplit > 0 || totalPendingPlantRewardToSplit > 0) {
+            harvestReward();
+        }
+        withdrawToken(amount);
+    }
+    
+    function withdrawToken(uint256 amount) internal {
+        address farmer = msg.sender;
+        require(farmer == tx.origin);
+        uint256 withdrawAmount = amount;
         Gardener memory gardener = gardeners[farmer];
         if(withdrawAmount <= gardener.balance) {
             gardener.balance -= uint256(withdrawAmount);
@@ -443,32 +456,6 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     // How much pending Plant in gStakedToken Pool (not including what is stack) (Call Plantswap MasterGardener Contract)
     function pendingPlantInPlantMasterGardener() public view returns (uint256) {
         return plantMasterGardener.pendingPlant(verticalGardenMasterGardenerPid, address(this));
-    }
-
-    function apyLastUpdateRewardToken() public view returns (uint256) {
-        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lLastRewardUpdateBlockPrevious = lastRewardUpdateBlockPrevious;
-        uint256 lLastRewardUpdateTotalStakedToken = lastRewardUpdateTotalStakedToken;
-        uint256 lLastRewardUpdateRewardTokenGained = lastRewardUpdateRewardTokenGained;
-        uint256 lApy = 0;
-        if(lLastRewardUpdateBlockPrevious > 0 && lLastRewardUpdateTotalStakedToken > 0 && lLastRewardUpdateRewardTokenGained > 0) {
-            uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(lLastRewardUpdateBlockPrevious));
-            lApy = (lLastRewardUpdateRewardTokenGained / lLastRewardUpdateTotalStakedToken / lBlockCount);
-        }
-        return lApy;
-    }
-
-    function apyLastUpdatePlant() public view returns (uint256) {
-        uint256 lLastRewardUpdateBlock = lastRewardUpdateBlock;
-        uint256 lLastRewardUpdateBlockPrevious = lastRewardUpdateBlockPrevious;
-        uint256 lLastRewardUpdateTotalStakedToken = lastRewardUpdateTotalStakedToken;
-        uint256 lLastRewardUpdatePlantGained = lastRewardUpdatePlantGained;
-        uint256 lApy = 0;
-        if(lLastRewardUpdateBlockPrevious > 0 && lLastRewardUpdateTotalStakedToken > 0 && lLastRewardUpdatePlantGained > 0) {
-            uint256 lBlockCount = (uint256(lLastRewardUpdateBlock) - uint256(lLastRewardUpdateBlockPrevious));
-            lApy = (lLastRewardUpdatePlantGained / lLastRewardUpdateTotalStakedToken / lBlockCount);
-        }
-        return lApy;
     }
     
     // How much StakedToken is stack and how much is the reward debt (Call PancakeSwap MasterChef Contract)
