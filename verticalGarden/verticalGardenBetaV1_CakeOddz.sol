@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-/* LastEdit: 15Jul2021 09:20
+/* LastEdit: 15Jul2021 09:50
 **
 ** PlantSwap.finance - VerticalGarden
 ** Version:         Beta 1
 ** Compatibility:   MasterChef(token&LP's) and SmartChef
 **
 ** Staked Token:    CAKE
-** Reward Token:    CAKE    and     PLANT
+** Reward Token:    ODDZ    and     PLANT
 ** Detail:          Harvest StakedToken&Plant reward as the % of the StakedToken the farmer has vs the total.
 **                  Pending reward for each gardener is calculated using the formula bellow:
 **                  (uint256(totalPendingRewardTokenToSplit) * (uint256(gardener.balance) * (uint256(block.number) - uint256(gardener.dateLastUpdate)))) / (uint256(totalStakedTokenEachBlock) + ((uint256(block.number) - uint256(lastUpdBlockNumber)) * uint256(totalStakedToken))));
@@ -26,8 +26,8 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     
     bool public depositActive;                                      // if true, deposit are active
     bool public freezeContract;                                     // Security Freeze this contract if true
-    bool public rewardTokenDifferentFromStakedToken = false;        // If true it mean the reward from MasterChef is not the same token than the Staked Token
-    bool public stakedTokenMasterChefContractIsSmartChef = false;   // If true it mean the Staking Contract is a SmartChef and not a MasterChef (no pid)
+    bool public rewardTokenDifferentFromStakedToken = true;        // If true it mean the reward from MasterChef is not the same token than the Staked Token
+    bool public stakedTokenMasterChefContractIsSmartChef = true;   // If true it mean the Staking Contract is a SmartChef and not a MasterChef (no pid)
     uint16 public verticalGardenStakedTokenMasterChefPid = 0;       // The pid of the MasterChef pool for the StakedToken
     uint16 public verticalGardenMasterGardenerPid = 1;              // The pid of the MasterGardener pool for gStakedToken
     uint16 depositFee = 100; // 1%                                  // Deposit Fee 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2000 = 20%
@@ -40,9 +40,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     address public devAddress;                                                              // Dev address for maintenance
 
     BEP20 constant public stakedToken = BEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);  // CAKE     // Place here the token that will be stack
-    BEP20 public rewardToken = BEP20(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82);           // CAKE     // Place here the token that will be receive as reward
-    StakedTokenMasterChef public stakedTokenMasterChef = StakedTokenMasterChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E); // PancakeSwap MasterChef   // MasterChef contract for stackedToken
-    StakedTokenSmartChef public stakedTokenSmartChef = StakedTokenSmartChef(0x73feaa1eE314F8c655E354234017bE2193C9E24E);    // PancakeSwap MasterChef   // MasterChef contract for stackedToken
+    BEP20 public rewardToken = BEP20(0xCD40F2670CF58720b694968698A5514e924F742d);           // CAKE     // Place here the token that will be receive as reward
+    StakedTokenMasterChef public stakedTokenMasterChef = StakedTokenMasterChef(0x44D1F81e80E43e935d66d65874354eF91E5E49f6); // Oddz SmartChef   // SmartChef contract for stackedToken
+    StakedTokenSmartChef public stakedTokenSmartChef = StakedTokenSmartChef(0x44D1F81e80E43e935d66d65874354eF91E5E49f6);    // Oddz SmartChef   // SmartChef contract for stackedToken
     BEP20 constant public plant = BEP20(0x58BA5Bd8872ec18BD360a9592149daed2fC57c69);        // PLANT Token
     MasterGardener public plantMasterGardener = MasterGardener(0x350c56f201f5BcB23F019748123a02e53F8039C4); // Plantswap MasterGardener
     
