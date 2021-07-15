@@ -601,6 +601,25 @@
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "compoudedReward",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "decimals",
 		"outputs": [
@@ -776,25 +795,6 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_farmer",
-				"type": "address"
-			}
-		],
-		"name": "gardenerWeightV1",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
@@ -831,7 +831,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "lastRewardUpdateBlock",
+		"name": "lastUpdBlockNumber",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -844,7 +844,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "lastRewardUpdateBlockPrevious",
+		"name": "lastUpdBlockNumberPrevious",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -857,7 +857,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "lastRewardUpdatePlantGained",
+		"name": "lastUpdPlantGained",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -870,7 +870,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "lastRewardUpdateRewardTokenGained",
+		"name": "lastUpdRewardTokenGained",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -883,7 +883,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "lastRewardUpdateTotalStakedToken",
+		"name": "lastUpdTotalStakedToken",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -1116,45 +1116,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "totalPendingRewardTokenRewardToSplit",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_farmer",
-				"type": "address"
-			}
-		],
-		"name": "totalPlantHarvested",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_farmer",
-				"type": "address"
-			}
-		],
-		"name": "totalRewardHarvested",
+		"name": "totalPendingRewardTokenToSplit",
 		"outputs": [
 			{
 				"internalType": "uint256",
