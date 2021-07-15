@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-/* LastEdit: 14Jul2021 18:43
+/* LastEdit: 14Jul2021 20:09
 **
 ** PlantSwap.finance - VerticalGarden
-** Version:         Beta 1.8
+** Version:         Beta 0.9
 ** Compatibility:   MasterChef(token&LP's) and SmartChef
 **
 ** Staked Token:    Cake
@@ -162,6 +162,9 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                 if(gStakedTokenToMintAndStake > 0) {
                     _mint(address(this), gStakedTokenToMintAndStake); // Mint gStakedToken harvested and previously deposited
                     plantMasterGardener.deposit(verticalGardenMasterGardenerPid, gStakedTokenToMintAndStake); // Stake gStakedToken harvested in MasterGardener
+                }
+                else {
+                    plantMasterGardener.deposit(verticalGardenMasterGardenerPid, 0); // Harvest
                 }
                 uint256 plantGained = plant.balanceOf(address(this)) - plantBalanceAtStart;
                 if(plantGained > 0) {
