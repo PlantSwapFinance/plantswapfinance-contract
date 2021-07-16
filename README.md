@@ -35,6 +35,6 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
 
 ## Still in dev-test
 
-- Vertical Garden Beta 1.0 Stake:EGGP Earn:EGGP  0x5d9c8c3Fbd4cF7EBA94bBD6BA5a47F8bc776E6e6 (in-test)
+- Vertical Garden Beta 1.0 Stake:EGGP Earn:EGGP  0x57BA57DCDd0f8D7620762209B1B118321A7F8Aa0 (in-test)
 
 - Vertical Garden Beta 1.0 Stake:Cake/BNB PCS LP's Earn:Cake 0xa7072CE9966f5F6f8589b45E08aE924569Dd8Fa0 (in-test)

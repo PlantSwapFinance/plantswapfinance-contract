@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-/* LastEdit: 16Jul2021 09:08
+/* LastEdit: 16Jul2021 11:40
 **
 ** PlantSwap.finance - VerticalGarden
 ** Version:         Beta 1
@@ -426,7 +426,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
             return stakedTokenSmartChef.pendingReward(address(this));
         } else
         {
-            return stakedTokenMasterChef.pendingCake(verticalGardenStakedTokenMasterChefPid, address(this));
+            return stakedTokenMasterChef.pendingEggp(verticalGardenStakedTokenMasterChefPid, address(this));
         }
     }
 
@@ -605,7 +605,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
 }
 
 interface StakedTokenMasterChef {
-    function pendingCake(uint256 _pid, address _user) external view returns (uint256);
+    function pendingEggp(uint256 _pid, address _user) external view returns (uint256);
     function deposit(uint256 _pid, uint256 _amount) external;
     function withdraw(uint256 _pid, uint256 _amount) external;
     function enterStaking(uint256 _amount) external;
