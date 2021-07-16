@@ -29,7 +29,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
     bool public rewardTokenDifferentFromStakedToken = false;        // If true it mean the reward from MasterChef is not the same token than the Staked Token
     bool public stakedTokenMasterChefContractIsSmartChef = false;   // If true it mean the Staking Contract is a SmartChef and not a MasterChef (no pid)
     uint16 public verticalGardenStakedTokenMasterChefPid = 0;       // The pid of the MasterChef pool for the StakedToken
-    uint16 public verticalGardenMasterGardenerPid = 22;              // The pid of the MasterGardener pool for gStakedToken
+    uint16 public verticalGardenMasterGardenerPid = 23;              // The pid of the MasterGardener pool for gStakedToken
     uint16 depositFee = 100; // 1%                                  // Deposit Fee 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2000 = 20%
     uint16 rewardCut = 1500; // 15%                                 // Reward Cut 1/10000 || 1 = 0.01%, 100 = 1%, min: 0, max: 2500 = 25%
     uint16 rewardCutSplitDevelopmentFund = 50; // 50%               // Reward Cut Split Development Fund 1/100 || 1 = 1%, 100 = 100%, min: 0, max: 100 = 100% (If both value are 0, this will get 100%)
@@ -96,12 +96,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                     stakedTokenSmartChef.deposit(0);
                 } else
                 {
-                    if(verticalGardenStakedTokenMasterChefPid > 0) {
-                        stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, 0);
-                    }
-                    else {
-                        stakedTokenMasterChef.enterStaking(0);
-                    }
+                    stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, 0);
                 }
                 uint256 rewardTokenGained = rewardToken.balanceOf(address(this)) - rewardTokenBalanceAtStart;
                 require(rewardTokenGained > 0, "No rewardTokenGained");
@@ -129,12 +124,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                             stakedTokenSmartChef.deposit(rewardTokenGained);
                     } else
                     {
-                        if(verticalGardenStakedTokenMasterChefPid > 0) {
-                            stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, rewardTokenGained);
-                        }
-                        else {
-                            stakedTokenMasterChef.enterStaking(rewardTokenGained); // Stake StakedToken harvested in PancakeSwap Pool
-                        }
+                        stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, rewardTokenGained);
                     }
                     gStakedTokenToMintAndStake += rewardTokenGained;
                 }
@@ -292,12 +282,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                         stakedTokenSmartChef.withdraw(expectedRewardToken);
                     } else
                     {
-                        if(verticalGardenStakedTokenMasterChefPid > 0) {
-                            stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, expectedRewardToken);
-                        }
-                        else {
-                            stakedTokenMasterChef.leaveStaking(expectedRewardToken);
-                        }
+                        stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, expectedRewardToken);
                     }
                     plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, expectedRewardToken);
                     _burn(address(this), expectedRewardToken);
@@ -356,12 +341,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
             stakedTokenSmartChef.deposit(depositAmount);
         } else
         {
-            if(verticalGardenStakedTokenMasterChefPid > 0) {
-                stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, depositAmount);
-            }
-            else {
-                stakedTokenMasterChef.enterStaking(depositAmount); // Stake your StakedToken in PancakeSwap Pool
-            }
+            stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, depositAmount);
         }
         Gardener memory gardener = gardeners[farmer];
         gardener.balance += uint256(depositAmount);
@@ -406,12 +386,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                 stakedTokenSmartChef.withdraw(withdrawAmount);
             } else
             {
-                if(verticalGardenStakedTokenMasterChefPid > 0) {
-                    stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, withdrawAmount);
-                }
-                else {
-                    stakedTokenMasterChef.leaveStaking(withdrawAmount);
-                }
+                stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, withdrawAmount);
             }
             plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, withdrawAmount);
             _burn(address(this), withdrawAmount);
@@ -436,12 +411,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                 stakedTokenSmartChef.withdraw(withdrawAmount);
             } else
             {
-                if(verticalGardenStakedTokenMasterChefPid > 0) {
-                    stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, withdrawAmount);
-                }
-                else {
-                    stakedTokenMasterChef.leaveStaking(withdrawAmount);
-                }
+                stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, withdrawAmount);
             }
             plantMasterGardener.withdraw(verticalGardenMasterGardenerPid, withdrawAmount);
             _burn(address(this), withdrawAmount);
@@ -595,12 +565,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                     stakedTokenSmartChef.deposit(_amount);
                 } else
                 {
-                    if(verticalGardenStakedTokenMasterChefPid > 0) {
-                        stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, _amount);
-                    }
-                    else {
-                        stakedTokenMasterChef.enterStaking(_amount);
-                    }
+                    stakedTokenMasterChef.deposit(verticalGardenStakedTokenMasterChefPid, _amount);
                 }
             }
             require(stakedToken.transferFrom(msg.sender, address(this), _amount), "Error with StakedToken Transfer");
@@ -611,12 +576,7 @@ contract VerticalGarden is ERC20, ReentrancyGuard {
                     stakedTokenSmartChef.withdraw(_amount);
                 } else
                 {
-                    if(verticalGardenStakedTokenMasterChefPid > 0) {
-                        stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, _amount);
-                    }
-                    else {
-                        stakedTokenMasterChef.leaveStaking(_amount);
-                    }
+                    stakedTokenMasterChef.withdraw(verticalGardenStakedTokenMasterChefPid, _amount);
                 }
             }
             require(stakedToken.transfer(msg.sender, _amount), "Error with StakedToken Transfer");
