@@ -31,8 +31,10 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
 ### VerticalGarden (Beta)
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Cake+Plant 0xBCb7b63B90459D536200Eb73f5b4D746da52A411 (public beta)
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Oddz+Plant 0x32121B2a1eD671dd0F1FC28Fffb5F1500b08A327 (public beta)
+- Vertical Garden Beta 1.0 Stake:Brew Earn:Brew  0xE7F2a4EAaFf2532DA98dC8d987D7C19B6803Fcac (public beta)
 
 ## Still in dev-test
 
-- Vertical Garden Beta 1.0 Stake:Brew Earn:Brew+Plant  0xE7F2a4EAaFf2532DA98dC8d987D7C19B6803Fcac (in-test)
-- Vertical Garden Beta 1.0 Stake:Cake/BNB PCS LP's Earn:Oddz+Plant 0xa7072CE9966f5F6f8589b45E08aE924569Dd8Fa0 (in-test)
+- Vertical Garden Beta 1.0 Stake:EGGP Earn:EGGP  0xa96908768a46229D275EEc733532c636e54F2BfA (in-test)
+
+- Vertical Garden Beta 1.0 Stake:Cake/BNB PCS LP's Earn:Cake 0xa7072CE9966f5F6f8589b45E08aE924569Dd8Fa0 (in-test)
