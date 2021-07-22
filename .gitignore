@@ -1,5 +1,6 @@
 /node_modules/
 /build/
+/inDev/
 /oldVersion/
 node_modules
 
