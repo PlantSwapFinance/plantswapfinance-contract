@@ -28,6 +28,13 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
 - 💻 Address use for test and dev
         https://bscscan.com/address/0xb57f4678fc7b6dC1b0ef174994f7E47E2Ee04B4C
 
+### Plantswap Gardeners Profile & NFT's
+- Plantswap Gardeners 1.0 0x76cafFBc2652a8e7096354AF0962456514D70cd6
+- Plantswap Gardeneing Board 0x7aAE362429A6153d3eE6c3824FA5f8Ea598B67f9
+- Plantswap Gardeneing School OG 0x6A6236dFFD0e7ea99001CebeeFEea93cDa120572
+- Plantswap Gardeneing School 0x77041B9F6826935eC065B43FC4739bEbba2aF162
+- Plantswap Gardeners Profile 0xC64AdB7169dC6e0D791E5627738e4CCF5245ee0C
+
 ### VerticalGarden (Beta)
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Cake+Plant 0xBCb7b63B90459D536200Eb73f5b4D746da52A411 (public beta)
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Oddz+Plant 0x32121B2a1eD671dd0F1FC28Fffb5F1500b08A327 (public beta)
