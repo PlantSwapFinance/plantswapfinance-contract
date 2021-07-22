@@ -1,0 +1,313 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "contract PlantswapGardeningBoard",
+				"name": "_plantswapGardeningBoard",
+				"type": "address"
+			},
+			{
+				"internalType": "contract BEP20",
+				"name": "_plantToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_cost",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_ipfsHash",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_blockNumberStart",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_blockNumberEnd",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint8",
+				"name": "gardenersId",
+				"type": "uint8"
+			}
+		],
+		"name": "MintGardener",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "blockNumberEnd",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "blockNumberStart",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_newOwner",
+				"type": "address"
+			}
+		],
+		"name": "changeOwnershipNFTContract",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "claimFee",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cost",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "hasClaimed",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint8",
+				"name": "_gardenersId",
+				"type": "uint8"
+			}
+		],
+		"name": "mintGardener",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "plantToken",
+		"outputs": [
+			{
+				"internalType": "contract BEP20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "plantswapGardeningBoard",
+		"outputs": [
+			{
+				"internalType": "contract PlantswapGardeningBoard",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_newBlockNumberEnd",
+				"type": "uint256"
+			}
+		],
+		"name": "setBlockNumberEnd",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_newBlockNumberStart",
+				"type": "uint256"
+			}
+		],
+		"name": "setBlockNumberStart",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_newCost",
+				"type": "uint256"
+			}
+		],
+		"name": "setCost",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint8",
+				"name": "_gardenersId",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "_gardenersJson",
+				"type": "string"
+			}
+		],
+		"name": "setGardenersJson",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint8",
+				"name": "_gardenersId",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "_gardenersName",
+				"type": "string"
+			}
+		],
+		"name": "setGardenersNames",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
