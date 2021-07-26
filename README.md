@@ -29,7 +29,6 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
         https://bscscan.com/address/0xb57f4678fc7b6dC1b0ef174994f7E47E2Ee04B4C
 
 ### Plantswap Gardeners Profile & NFT's
-- Plantswap Gardeners 1.0 0x76cafFBc2652a8e7096354AF0962456514D70cd6
 - Plantswap Gardeneing Board 0x7aAE362429A6153d3eE6c3824FA5f8Ea598B67f9
 - Plantswap Gardeneing School OG 0x6A6236dFFD0e7ea99001CebeeFEea93cDa120572
 - Plantswap Gardeneing School 0x77041B9F6826935eC065B43FC4739bEbba2aF162
@@ -39,10 +38,11 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Cake+Plant 0xBCb7b63B90459D536200Eb73f5b4D746da52A411 (public beta)
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Oddz+Plant 0x32121B2a1eD671dd0F1FC28Fffb5F1500b08A327 (public beta)
 - Vertical Garden Beta 1.0 Stake:Brew Earn:Brew  0xE7F2a4EAaFf2532DA98dC8d987D7C19B6803Fcac (public beta)
-- Vertical Garden Beta 1.0 Stake:EGGP Earn:EGGP  0x57BA57DCDd0f8D7620762209B1B118321A7F8Aa0 (public beta)
+- Vertical Garden Beta 1.0 Stake:EGGP Earn:EGGP+Plant  0x57BA57DCDd0f8D7620762209B1B118321A7F8Aa0 (public beta)
+- Vertical Garden Beta 1.0 Stake:Cake Earn:CHESS+Plant  0x81AD11FfF34D49D433596c4b9670fc65F62f65D7 (public beta)
 
 ## Still in dev-test
 
-- Vertical Garden Beta 1.0 Stake:PLANT Earn:CHESS  0x81AD11FfF34D49D433596c4b9670fc65F62f65D7 (in-test)
+- Vertical Garden Beta 1.0 Stake:Banana Earn:Banana 0x99a942EeD12fa1ae1cAe1683699D76acc533cd6a  (in-test)
 
 - Vertical Garden Beta 1.0 Stake:Cake/BNB PCS LP's Earn:Cake 0xa7072CE9966f5F6f8589b45E08aE924569Dd8Fa0 (in-test)
