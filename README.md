@@ -11,6 +11,16 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
 - MasterGardener 0x350c56f201f5BcB23F019748123a02e53F8039C4
     https://bscscan.com/address/0x350c56f201f5bcb23f019748123a02e53f8039c4
 
+
+- Plantswap Gardeners (NFT) 
+    https://bscscan.com/address/
+- Plantswap Gardeners Profile 
+    https://bscscan.com/address/
+- Plantswap Gardeneing School 
+    https://bscscan.com/address/
+- Plantswap Gardeneing Board 
+    https://bscscan.com/address/
+
 ### PlantSwap Binance Smart Chain Address
 
 - 🌱 Main - PlantSwap.finance
@@ -27,12 +37,6 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
         https://bscscan.com/address/0x48Ed3104659C4ae85Ca655Bb37B1E6737ADc67B3
 - 💻 Address use for test and dev
         https://bscscan.com/address/0xb57f4678fc7b6dC1b0ef174994f7E47E2Ee04B4C
-
-### Plantswap Gardeners Profile & NFT's
-- Plantswap Gardeneing Board 0x7aAE362429A6153d3eE6c3824FA5f8Ea598B67f9
-- Plantswap Gardeneing School OG 0x6A6236dFFD0e7ea99001CebeeFEea93cDa120572
-- Plantswap Gardeneing School 0x77041B9F6826935eC065B43FC4739bEbba2aF162
-- Plantswap Gardeners Profile 0xC64AdB7169dC6e0D791E5627738e4CCF5245ee0C
 
 ### VerticalGarden (Beta)
 - Vertical Garden Beta 1.0 Stake:Cake Earn:Cake+Plant 0xBCb7b63B90459D536200Eb73f5b4D746da52A411 (public beta)

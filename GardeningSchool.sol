@@ -1,19 +1,12 @@
 // SPDX-License-Identifier: MIT
-/* LastEdit: 22Jul2021 10:27
+/* LastEdit: 01August2021 11:30
 **
-** PlantSwap.finance - GardeningSchool
-** Version:         1.0.0.0
+** PlantSwap.finance - Gardening School
+** Version:         1.1.0
 **
-** Detail: This contract is responsible for gardener Id 1 to 8
-**          gardeners claiming these nft's and transfering them.
+** Detail: This school is responsible for Gardeners id 1 to 5
 */
 pragma solidity 0.8.0;
-
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./PlantswapGardeningBoard.sol";
 
@@ -28,8 +21,7 @@ contract GardeningSchool is Ownable {
 
     string private ipfsHash;                                // IPFS hash for new json
     mapping(uint8 => string) private gardenersIdURIs;         // Map the token number to URI
-    uint8 private constant numberGardenersIds = 15;           // number of total series from 9 to 14
-    uint8 private constant previousNumberGardenersIds = 9;    // number of previous series ID 1 to 8 -> OldSchool
+    uint8 private constant numberGardenersIds = 6;           // number of total series from 1 to 5
 
     event MintGardener(address indexed to,  uint256 indexed tokenId, uint8 indexed gardenersId);
 
@@ -53,7 +45,7 @@ contract GardeningSchool is Ownable {
         require(!hasClaimed[_msgSender()], "Has claimed");
         require(block.number > blockNumberStart, "too early");
         require(block.number < blockNumberEnd, "too late");
-        require(_gardenersId >= previousNumberGardenersIds, "gardenersId too low");
+        require(_gardenersId > 0, "gardenersId too low");
         require(_gardenersId < numberGardenersIds, "gardenersId too high");
 
         hasClaimed[_msgSender()] = true;
@@ -74,13 +66,13 @@ contract GardeningSchool is Ownable {
     }
 
     function setGardenersJson(uint8 _gardenersId, string calldata _gardenersJson) external onlyOwner {
-        require(_gardenersId >= previousNumberGardenersIds, "gardenersId too low");
+        require(_gardenersId > 0, "gardenersId too low");
         require(_gardenersId < numberGardenersIds, "gardenersId too high");
         gardenersIdURIs[_gardenersId] = string(abi.encodePacked(ipfsHash, _gardenersJson));
     }
 
     function setGardenersNames(uint8 _gardenersId, string calldata _gardenersName) external onlyOwner {
-        require(_gardenersId >= previousNumberGardenersIds, "gardenersId too low");
+        require(_gardenersId > 0, "gardenersId too low");
         require(_gardenersId < numberGardenersIds, "gardenersId too high");
         plantswapGardeningBoard.setGardenerName(_gardenersId, _gardenersName);
     }
@@ -98,6 +90,14 @@ contract GardeningSchool is Ownable {
 
     function setCost(uint256 _newCost) external onlyOwner {
         cost = _newCost;
+    }
+
+    function canMint(address userAddress) external view returns (bool) {
+        if (hasClaimed[userAddress]) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
 
