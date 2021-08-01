@@ -12,14 +12,14 @@ https://plantswap.finance. Feel free to read the code. More details coming soon.
     https://bscscan.com/address/0x350c56f201f5bcb23f019748123a02e53f8039c4
 
 
-- Plantswap Gardeners (NFT) 
-    https://bscscan.com/address/
-- Plantswap Gardeners Profile 
-    https://bscscan.com/address/
-- Plantswap Gardeneing School 
-    https://bscscan.com/address/
-- Plantswap Gardeneing Board 
-    https://bscscan.com/address/
+- Plantswap Gardeners (NFT) 0xA7C25c199BC8Dd06c4Edd2Ea8aEbCeC40A404c03
+    https://bscscan.com/address/0xA7C25c199BC8Dd06c4Edd2Ea8aEbCeC40A404c03
+- Plantswap Gardeners Profile 0x17cc3aD4eB998F9D876352486217853a8847d920
+    https://bscscan.com/address/0x17cc3aD4eB998F9D876352486217853a8847d920
+- Plantswap Gardeneing School 0x74CCd4C82ac10AB1413cDF1A87393eFA94CEcaB9
+    https://bscscan.com/address/0x74CCd4C82ac10AB1413cDF1A87393eFA94CEcaB9
+- Plantswap Gardeneing Board 0x3Aa24E75F5DF7c436A989DE4f87e3B45827a1b2A
+    https://bscscan.com/address/0x3Aa24E75F5DF7c436A989DE4f87e3B45827a1b2A
 
 ### PlantSwap Binance Smart Chain Address
 
